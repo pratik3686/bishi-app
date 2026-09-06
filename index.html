@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bishi Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- Screen 1: Create Bishi -->
+    <section id="screen-setup" class="screen active">
+      <header class="header">
+        <h1>Bishi Manager</h1>
+        <p class="subtitle">Create a new monthly Bishi group</p>
+      </header>
+
+      <form id="setup-form" class="card">
+        <div class="field">
+          <label for="bishi-name">Bishi Name</label>
+          <input type="text" id="bishi-name" placeholder="e.g. Office Bishi 2026" required>
+        </div>
+
+        <div class="field">
+          <label for="monthly-amount">Monthly Contribution (₹)</label>
+          <input type="number" id="monthly-amount" placeholder="5000" min="1" required>
+        </div>
+
+        <div class="field">
+          <label for="start-month">Start Month</label>
+          <input type="month" id="start-month" required>
+        </div>
+
+        <div class="field">
+          <label for="member-count">Number of Members</label>
+          <input type="number" id="member-count" placeholder="6" min="2" max="50" required>
+        </div>
+
+        <div class="field">
+          <label for="spin-pin">Spin PIN (4–6 digits)</label>
+          <input type="password" id="spin-pin" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" placeholder="e.g. 1234" required autocomplete="new-password">
+          <p class="field-hint">Only someone with this PIN can spin the wheel.</p>
+        </div>
+
+        <div class="field">
+          <label for="spin-pin-confirm">Confirm Spin PIN</label>
+          <input type="password" id="spin-pin-confirm" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" placeholder="Re-enter PIN" required autocomplete="new-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Bishi</button>
+      </form>
+    </section>
+
+    <!-- Screen 2: Add Members -->
+    <section id="screen-members" class="screen">
+      <header class="header">
+        <h1>Add Members</h1>
+        <p id="members-needed" class="subtitle">Add member names</p>
+      </header>
+
+      <div class="card">
+        <div class="add-member-row">
+          <input type="text" id="member-input" placeholder="Member name">
+          <button type="button" id="add-member-btn" class="btn btn-secondary">Add</button>
+        </div>
+
+        <ul id="member-list" class="member-list"></ul>
+
+        <button type="button" id="go-dashboard-btn" class="btn btn-primary" disabled>
+          Go to Dashboard
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 3: Dashboard -->
+    <section id="screen-dashboard" class="screen">
+      <header class="header dashboard-header">
+        <h1 id="dash-name">Bishi Name</h1>
+        <p id="dash-amount" class="amount-label">₹0 / month</p>
+      </header>
+
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-value" id="dash-total-members">0</span>
+          <span class="stat-label">Members</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="dash-current-month">—</span>
+          <span class="stat-label">Current Month</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="dash-eligible">0</span>
+          <span class="stat-label">Eligible</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="dash-received">0</span>
+          <span class="stat-label">Received</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="dash-payouts">0</span>
+          <span class="stat-label">Payouts</span>
+        </div>
+      </div>
+
+      <div class="wheel-section card">
+        <div class="wheel-container">
+          <canvas id="wheel-canvas"></canvas>
+        </div>
+        <button type="button" id="run-bishi-btn" class="btn btn-spin">🎯 RUN BISHI</button>
+        <p id="pin-status" class="pin-status hidden">🔒 Spin PIN is set</p>
+        <button type="button" id="change-pin-btn" class="btn-link hidden">Change Spin PIN</button>
+
+        <div id="winner-panel" class="winner-panel hidden">
+          <p id="winner-message" class="winner-message"></p>
+          <p id="winner-pool" class="winner-pool"></p>
+          <div class="winner-actions">
+            <button type="button" id="confirm-winner-btn" class="btn btn-primary">Confirm Winner</button>
+            <button type="button" id="cancel-winner-btn" class="btn btn-outline">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="members-section">
+        <div class="card half">
+          <h2>Eligible Members</h2>
+          <ul id="eligible-list" class="name-list"></ul>
+        </div>
+        <div class="card half">
+          <h2>Already Received</h2>
+          <ul id="received-list" class="name-list"></ul>
+        </div>
+      </div>
+
+      <div class="card history-card">
+        <div class="section-header-row">
+          <h2>Winner History</h2>
+          <button type="button" id="add-previous-btn" class="btn-small btn-secondary">+ Add Previous Result</button>
+        </div>
+        <div class="table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Winner</th>
+                <th class="amount-col">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div id="previous-result-panel" class="card previous-result-panel hidden">
+        <h2>Add Previous Result</h2>
+        <p class="subtitle">Enter a result from a month that has already happened before using the wheel for the current month.</p>
+        <div class="field">
+          <label for="previous-month">Month</label>
+          <input type="month" id="previous-month">
+        </div>
+        <div class="field">
+          <label for="previous-winner">Winner</label>
+          <select id="previous-winner"></select>
+        </div>
+        <div class="field">
+          <label for="previous-amount">Payout Amount (₹)</label>
+          <input type="number" id="previous-amount" min="1" step="1" placeholder="50000">
+        </div>
+        <p id="previous-result-error" class="pin-error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" id="save-previous-btn" class="btn btn-primary">Save Previous Result</button>
+          <button type="button" id="cancel-previous-btn" class="btn btn-outline">Cancel</button>
+        </div>
+      </div>
+
+      <button type="button" id="reset-btn" class="btn btn-danger-outline">Start New Bishi</button>
+    </section>
+
+  </div>
+
+  <!-- PIN modal -->
+  <div id="pin-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pin-modal-title">
+    <div class="modal-backdrop" id="pin-modal-backdrop"></div>
+    <div class="modal-content card">
+      <h2 id="pin-modal-title">Enter Spin PIN</h2>
+      <p id="pin-modal-subtitle" class="subtitle">Enter the PIN to run the Bishi draw.</p>
+      <div class="field">
+        <input type="password" id="pin-input" inputmode="numeric" maxlength="6" placeholder="4–6 digit PIN" autocomplete="off">
+      </div>
+      <p id="pin-error" class="pin-error hidden">Wrong PIN. Try again.</p>
+      <div class="modal-actions">
+        <button type="button" id="pin-submit-btn" class="btn btn-primary">Unlock & Spin</button>
+        <button type="button" id="pin-cancel-btn" class="btn btn-outline">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/wheel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
